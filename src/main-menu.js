@@ -12,41 +12,18 @@ class MainMenu extends Menu {
             },
         ));
 
-        const js13kButton = new Button(
-            CONFIG.width - 75,
-            60,
-            '',
-            () => {
-                open('https://js13kgames.com/');
-            },
-        );
-        js13kButton.radiusX = 50;
-        js13kButton.radiusY = 50;
-        js13kButton.render = function() {
-            CTX.translate(this.x, this.y);
-
-            if (this.contains(MOUSE_POSITION)) {
-                CTX.scale(1.1, 1.1);
-            }
-
-            renderJs13kBadge(CTX);
-        };
-        this.buttons.push(js13kButton);
-
-        const lastScore = DEATHS.length ? DEATHS[DEATHS.length - 1].distance : 0;
-        if (lastScore) {
+        const scores = highscores();
+        if (scores.length != 0) {
             this.buttons.push(new Button(
                 CONFIG.width / 2,
                 CONFIG.height / 2 + 125,
-                'BRAG ABOUT IT',
+                'SCOREBOARD',
                 () => {
-                    const message = `I climbed ${lastScore}m in ${document.title}!`;
-                    open(
-                        'https://twitter.com/intent/tweet?' +
-                        'hashtags=js13k' +
-                        '&url=' + location +
-                        '&text=' + encodeURIComponent(message)
-                    );
+                    let items = "";
+                    highscores().forEach(item => items += '<li><span class="w3-large">' + item.name + '</span><span class="w3-right">' + item.score + '</span></li>');
+                    const ul = document.getElementById('scoreboard-list');
+                    ul.innerHTML = items;
+                    document.getElementById('scoreboard').style.display='block';
                 },
             ));
         }
@@ -55,8 +32,9 @@ class MainMenu extends Menu {
     }
 
     render() {
+        const addr = window.webxdc.selfAddr();
         const lastScore = DEATHS.length ? DEATHS[DEATHS.length - 1].distance : -1;
-        const newHighscore = lastScore >= highscore();
+        const newHighscore = lastScore >= highscore(addr);
 
         const rng = createNumberGenerator(1);
         for (let i = 0 ; i < 100 * newHighscore ; i++) {
@@ -123,7 +101,7 @@ class MainMenu extends Menu {
 
                     CTX.font = '8pt Courier';
                     CTX.translate(0, 25);
-                    CTX.fillText(`(YOU ONCE DID ${highscore()}M THOUGH)`, 0, 0);
+                    CTX.fillText(`(YOU ONCE DID ${highscore(addr)}M THOUGH)`, 0, 0);
                 }
             }
         });

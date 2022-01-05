@@ -116,7 +116,10 @@ class Player {
         DEATHS.push({'x': this.x, 'y': this.y, 'distance': this.distance})
         setTimeout(() => MENU = new MainMenu(), 1000);
 
-        updateHighscore(this.distance);
+        const addr = window.webxdc.selfAddr();
+        if (highscore(addr) < this.distance) {
+            window.webxdc.sendUpdate("New high score in Triska Reloaded!", {"addr": addr, "name": window.webxdc.selfName(), "score": this.distance});
+        }
     }
 
     get onWall() {

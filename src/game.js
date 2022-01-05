@@ -1,4 +1,7 @@
 onload = () => {
+    window.webxdc.setUpdateListener(receiveUpdate);
+    window.webxdc.getAllUpdates().forEach(receiveUpdate);
+
     CANVAS = can;
     CANVAS.width = CONFIG.width;
     CANVAS.height = CONFIG.height;
@@ -225,10 +228,25 @@ generateNewObstacle = () => {
     }
 };
 
-updateHighscore = (score) => {
-    localStorage['hs'] = Math.max(highscore(), score);
+updateHighscore = (addr, name, score) => {
+    if ((PLAYERS[addr] ? PLAYERS[addr].score : 0) < score) {
+        PLAYERS[addr] = {'name': name, 'score': score};
+    }
 };
 
-highscore = () => {
-    return parseInt(localStorage['hs']) || 0;
+highscore = (addr) => {
+    return PLAYERS[addr] ? PLAYERS[addr].score : 0;
+};
+
+highscores = () => {
+    return Object.keys(PLAYERS).map((addr) => {
+        const player = PLAYERS[addr];
+        player.addr = addr;
+        return player;
+    }).sort((a, b) => b.score - a.score);
+};
+
+receiveUpdate = (update) => {
+    const player = update.payload;
+    updateHighscore(player.addr, player.name, player.score);
 };
