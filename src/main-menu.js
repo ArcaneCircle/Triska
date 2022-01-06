@@ -28,10 +28,10 @@ class MainMenu extends Menu {
                     highscores().forEach(item => {
                         const name = document.createElement('span');
                         name.className = 'w3-large';
-                        name.textContent = item.name;
+                        name.textContent = item.name.length > 20 ? item.name.substring(0, 20) + '…' : item.name;
 
                         const score = document.createElement('span');
-                        score.textContent = item.score;
+                        score.textContent = item.score + "M";
                         score.className = 'w3-right';
 
                         const li = document.createElement('li');
