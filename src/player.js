@@ -118,7 +118,9 @@ class Player {
 
         const addr = window.webxdc.selfAddr();
         if (highscore(addr) < this.distance) {
-            window.webxdc.sendUpdate("New high score in Triska Reloaded!", {"addr": addr, "name": window.webxdc.selfName(), "score": this.distance});
+            const name = window.webxdc.selfName();
+            const desc = name + ' climbed ' + this.distance + 'M in Triska';
+            window.webxdc.sendUpdate(desc, {"addr": addr, "name": name, "score": this.distance});
         }
     }
 
