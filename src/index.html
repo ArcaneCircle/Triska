@@ -16,18 +16,17 @@
         </div>
 
         <!-- Scoreboard Modal -->
-        <div id="scoreboard" class="w3-modal">
-            <div class="w3-modal-content w3-animate-top">
+        <div id="scoreboard" class="w3-modal" onclick="document.getElementById('scoreboard').style.display='none';event.stopPropagation();">
+            <div class="w3-modal-content w3-animate-top" onclick="event.stopPropagation();">
 
                 <header class="w3-container w3-red">
-                    <span onclick="document.getElementById('scoreboard').style.display='none'"
-                          class="w3-button w3-xlarge w3-display-topright">&times;</span>
-                    <h2>Scoreboard</h2>
+                    <h2>Scoreboard
+                        <span onclick="document.getElementById('scoreboard').style.display='none'"
+                              class="w3-button w3-display-topright">&times;</span>
+                    </h2>
                 </header>
 
-                <div class="w3-container">
-                    <ul id="scoreboard-list" class="w3-ul"></ul>
-                </div>
+                <div id="scoreboard-container" class="w3-container"></div>
             </div>
         </div>
 
