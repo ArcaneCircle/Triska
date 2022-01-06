@@ -40,6 +40,7 @@ if __name__ == "__main__":
     if os.path.exists(app_archive):
         os.remove(app_archive)
 
+    # ADD JS
     script = cat(
         [
             "src/config.js",
@@ -61,6 +62,7 @@ if __name__ == "__main__":
     with open("build/index.js", "w") as file:
         file.write(script)
 
+    # ADD CSS
     css = cat(
         [
             "src/style.css",
@@ -72,12 +74,17 @@ if __name__ == "__main__":
     with open("build/style.css", "w") as file:
         file.write(css)
 
+    # ADD HTML
     with open("src/index.html") as file:
         html = file.read()
     if args.minify:
         html = htmlmin.minify(html)
     with open("build/index.html", "w") as file:
         file.write(html)
+
+    # ADD METADATA
+    shutil.copyfile("images/icon.png", "build/icon.png")
+    shutil.copyfile("manifest.toml", "build/manifest.toml")
 
     project_root = os.path.abspath(".")
     os.chdir("build")
