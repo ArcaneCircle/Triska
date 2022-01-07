@@ -120,7 +120,7 @@ class Player {
         if (highscore(addr) < this.distance) {
             const name = window.webxdc.selfName();
             const desc = name + ' climbed ' + this.distance + 'M in Triska';
-            window.webxdc.sendUpdate(desc, {"addr": addr, "name": name, "score": this.distance});
+            window.webxdc.sendUpdate({"addr": addr, "name": name, "score": this.distance}, desc);
         }
     }
 
