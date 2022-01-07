@@ -92,3 +92,5 @@ if __name__ == "__main__":
     os.chdir(project_root)
     os.rename(f"{app_archive}.zip", app_archive)
     shutil.copyfile("webxdc.js", "build/webxdc.js")
+
+    print(f"App saved as: {app_archive}")
