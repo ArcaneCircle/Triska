@@ -82,8 +82,8 @@ renderCat = (ctx, paws, dead) => {
     ctx.fillStyle = '#fff';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
-    ctx.font = '4pt Courier';
-    ctx.fillText('13', 0, 7.5);
+    ctx.font = '4pt Verdana';
+    ctx.fillText('δ', 0, 7.5);
 
     // Whiskers
     ctx.lineWidth = 1;
