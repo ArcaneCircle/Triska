@@ -2,7 +2,6 @@
 import argparse
 import os
 import shutil
-from io import StringIO
 
 import htmlmin
 import lesscpy
@@ -14,77 +13,77 @@ def get_parser() -> argparse.ArgumentParser:
         description="App Builder",
     )
     parser.add_argument(
-        "-m",
-        "--minify",
-        action="store_true",
-        help="shrink the app's source code removing unnecesary spaces, etc.",
+        "-n",
+        "--name",
+        default=os.path.basename(os.path.dirname(os.path.abspath(__file__))),
+        help="App package's base name",
     )
 
     return parser
 
 
-def cat(paths) -> str:
-    contents = []
-    for path in paths:
-        with open(path) as file:
-            contents.append(file.read())
-    return "\n".join(contents)
+def size_fmt(num: float) -> str:
+    suffix = "B"
+    for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, "Yi", suffix)
 
 
 if __name__ == "__main__":
     args = get_parser().parse_args()
-    app_archive = "Triska.xdc"
+    app_archive = args.name if args.name.endswith(".xdc") else f"{args.name}.xdc"
 
+    # CLEAN
     shutil.rmtree("build", ignore_errors=True)
-    os.makedirs("build")
+    os.makedirs("build/js")
+    os.makedirs("build/css")
     if os.path.exists(app_archive):
         os.remove(app_archive)
 
     # ADD JS
-    script = cat(
-        [
-            "src/config.js",
-            "src/globals.js",
-            "src/graphics.js",
-            "src/utils.js",
-            "src/game.js",
-            "src/camera.js",
-            "src/item.js",
-            "src/player.js",
-            "src/obstacle.js",
-            "src/menu.js",
-            "src/main-menu.js",
-            "src/rng.js",
-        ]
-    )
-    if args.minify:
-        script = jsmin(script).replace("\n", ";")
-    with open("build/index.js", "w") as file:
-        file.write(script)
+    paths = [
+        "js/config.js",
+        "js/globals.js",
+        "js/graphics.js",
+        "js/utils.js",
+        "js/game.js",
+        "js/camera.js",
+        "js/item.js",
+        "js/player.js",
+        "js/obstacle.js",
+        "js/main-menu.js",
+        "js/rng.js",
+    ]
+    for path in paths:
+        with open(path) as src:
+            with open(f"build/{path}", "w") as dest:
+                dest.write(jsmin(src.read()).replace("\n", ";"))
 
     # ADD CSS
-    css = cat(
-        [
-            "src/style.css",
-            "src/w3.css",
-        ]
-    )
-    if args.minify:
-        css = lesscpy.compile(StringIO(css), minify=True, xminify=True)
-    with open("build/style.css", "w") as file:
-        file.write(css)
+    paths = [
+        "css/style.css",
+        "css/w3.css",
+    ]
+    for path in paths:
+        with open(path) as src:
+            with open(f"build/{path}", "w") as dest:
+                dest.write(lesscpy.compile(src, minify=True, xminify=True))
+
 
     # ADD HTML
-    with open("src/index.html") as file:
-        html = file.read()
-    if args.minify:
-        html = htmlmin.minify(html)
-    with open("build/index.html", "w") as file:
-        file.write(html)
+    with open("index.html") as src:
+        with open("build/index.html", "w") as dest:
+            dest.write(htmlmin.minify(src.read()))
 
     # ADD METADATA
-    shutil.copyfile("images/icon.png", "build/icon.png")
-    shutil.copyfile("manifest.toml", "build/manifest.toml")
+    paths = [
+        "manifest.toml",
+        "icon.png",
+    ]
+    for path in paths:
+        shutil.copyfile(f"{path}", f"build/{path}")
 
     project_root = os.path.abspath(".")
     os.chdir("build")
@@ -93,4 +92,6 @@ if __name__ == "__main__":
     os.rename(f"{app_archive}.zip", app_archive)
     shutil.copyfile("webxdc.js", "build/webxdc.js")
 
-    print(f"App saved as: {app_archive}")
+    with open(app_archive, "rb") as file:
+        size = len(file.read())
+    print(f"App saved as: {app_archive} ({size_fmt(size)})")
