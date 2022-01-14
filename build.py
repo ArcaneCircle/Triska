@@ -44,17 +44,13 @@ if __name__ == "__main__":
 
     # ADD JS
     paths = [
-        "js/config.js",
         "js/globals.js",
         "js/graphics.js",
         "js/utils.js",
         "js/game.js",
-        "js/camera.js",
-        "js/item.js",
         "js/player.js",
         "js/obstacle.js",
         "js/main-menu.js",
-        "js/rng.js",
     ]
     for path in paths:
         with open(path) as src:
