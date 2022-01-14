@@ -67,7 +67,6 @@ if __name__ == "__main__":
             with open(f"build/{path}", "w") as dest:
                 dest.write(lesscpy.compile(src, minify=True, xminify=True))
 
-
     # ADD HTML
     with open("index.html") as src:
         with open("build/index.html", "w") as dest:
