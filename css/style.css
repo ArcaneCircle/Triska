@@ -32,3 +32,13 @@ body {
 #container {
     padding-top: 133%;
 }
+
+#footer {
+    font-family: Courier,monospace,sans-serif;
+    position: fixed;
+    bottom: .5em;
+    left: .5em;
+    color: #fff;
+    opacity:0.8;
+    text-decoration: none;
+}
