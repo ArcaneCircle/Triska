@@ -1,18 +1,20 @@
 onload = () => {
     window.webxdc.setUpdateListener(receiveUpdate);
-    window.webxdc.getAllUpdates().forEach(receiveUpdate);
+    window.webxdc.getAllUpdates().then((updates) => {
+        updates.forEach(receiveUpdate);
 
-    CANVAS = can;
-    CANVAS.width = CONFIG.width;
-    CANVAS.height = CONFIG.height;
+        CANVAS = can;
+        CANVAS.width = CONFIG.width;
+        CANVAS.height = CONFIG.height;
 
-    CTX = CANVAS.getContext('2d');
+        CTX = CANVAS.getContext('2d');
 
-    resetGame();
+        resetGame();
 
-    onresize();
+        onresize();
 
-    animationFrame();
+        animationFrame();
+    });
 };
 
 onresize = () => {

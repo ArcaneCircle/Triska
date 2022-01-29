@@ -102,7 +102,7 @@ class MainMenu extends Menu {
                     const container = document.getElementById('scoreboard-container');
                     container.innerHTML = '';
 
-                    const addr = window.webxdc.selfAddr();
+                    const addr = window.webxdc.selfAddr;
                     const list = document.createElement('ol');
                     list.className = 'w3-ol';
                     highscores().forEach(item => {
@@ -137,7 +137,7 @@ class MainMenu extends Menu {
     }
 
     render() {
-        const addr = window.webxdc.selfAddr();
+        const addr = window.webxdc.selfAddr;
         const lastScore = DEATHS.length ? DEATHS[DEATHS.length - 1].distance : -1;
         const newHighscore = lastScore >= highscore(addr);
 

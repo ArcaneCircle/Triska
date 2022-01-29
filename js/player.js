@@ -116,9 +116,9 @@ class Player {
         DEATHS.push({'x': this.x, 'y': this.y, 'distance': this.distance})
         setTimeout(() => MENU = new MainMenu(), 1000);
 
-        const addr = window.webxdc.selfAddr();
+        const addr = window.webxdc.selfAddr;
         if (highscore(addr) < this.distance) {
-            const name = window.webxdc.selfName();
+            const name = window.webxdc.selfName;
             const desc = name + ' climbed ' + this.distance + 'M in Triska';
             const payload = {addr: addr, name: name, score: this.distance};
             window.webxdc.sendUpdate({payload: payload, info: desc}, desc);
