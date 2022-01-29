@@ -139,7 +139,7 @@ class MainMenu extends Menu {
     render() {
         const addr = window.webxdc.selfAddr;
         const lastScore = DEATHS.length ? DEATHS[DEATHS.length - 1].distance : -1;
-        const newHighscore = lastScore >= highscore(addr);
+        const newHighscore = lastScore > highscore(addr);
 
         const rng = createNumberGenerator(1);
         for (let i = 0 ; i < 100 * newHighscore ; i++) {
