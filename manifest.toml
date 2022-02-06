@@ -1,1 +1,9 @@
-name = "Triska Reloaded"
+name="Triska Reloaded"
+
+[store]
+id="com.github.adbenitez.Triska"
+version_name=0.2
+version_code=1
+author="adbenitez"
+author_email="adbenitez@nauta.cu"
+description="Jump high and collect the lucky clovers!"
