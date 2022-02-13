@@ -231,7 +231,7 @@ generateNewObstacle = () => {
 };
 
 updateHighscore = (addr, name, score) => {
-    if ((PLAYERS[addr] ? PLAYERS[addr].score : 0) < score) {
+    if (highscore(addr) < score) {
         PLAYERS[addr] = {'name': name, 'score': score};
     }
 };
