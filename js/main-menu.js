@@ -92,8 +92,7 @@ class MainMenu extends Menu {
             },
         ));
 
-        const scores = highscores();
-        if (scores.length != 0) {
+        if (Object.keys(PLAYERS).length) {
             this.buttons.push(new Button(
                 CONFIG.width / 2,
                 CONFIG.height / 2 + 125,
@@ -115,7 +114,7 @@ class MainMenu extends Menu {
                         score.className = 'w3-right';
 
                         const li = document.createElement('li');
-                        if (item.addr == addr) {
+                        if (item.addr === addr) {
                             const strong = document.createElement("strong");
                             strong.appendChild(name);
                             strong.appendChild(score);
