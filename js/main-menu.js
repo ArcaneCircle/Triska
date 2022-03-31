@@ -92,7 +92,7 @@ class MainMenu extends Menu {
             },
         ));
 
-        if (Object.keys(PLAYERS).length) {
+        if (localStorage.getItem(showScoresKey)) {
             this.buttons.push(new Button(
                 CONFIG.width / 2,
                 CONFIG.height / 2 + 125,

@@ -13,7 +13,8 @@ let CANVAS,
     MOUSE_POSITION = {'x': 0, 'y': 0},
     MENU = null,
     RENDERED_POWER = 0,
-    PLAYERS = {};
+    PLAYERS = {},
+    showScoresKey = "showScores";
 
 const CONFIG = {
     'width': 480,

@@ -1,20 +1,25 @@
 onload = () => {
-    window.webxdc.setUpdateListener(receiveUpdate);
-    window.webxdc.getAllUpdates().then((updates) => {
-        updates.forEach(receiveUpdate);
+    let showScores = localStorage.getItem(showScoresKey);
+    window.webxdc.setUpdateListener((update) => {
+        const player = update.payload;
+        updateHighscore(player.addr, player.name, player.score);
+        if (!showScores) {
+            localStorage.setItem(showScoresKey, true);
+            showScores = true;
+        }
+    }, 0);
 
-        CANVAS = can;
-        CANVAS.width = CONFIG.width;
-        CANVAS.height = CONFIG.height;
+    CANVAS = can;
+    CANVAS.width = CONFIG.width;
+    CANVAS.height = CONFIG.height;
 
-        CTX = CANVAS.getContext('2d');
+    CTX = CANVAS.getContext('2d');
 
-        resetGame();
+    resetGame();
 
-        onresize();
+    onresize();
 
-        animationFrame();
-    });
+    animationFrame();
 };
 
 onresize = () => {
@@ -246,9 +251,4 @@ highscores = () => {
         player.addr = addr;
         return player;
     }).sort((a, b) => b.score - a.score);
-};
-
-receiveUpdate = (update) => {
-    const player = update.payload;
-    updateHighscore(player.addr, player.name, player.score);
 };
