@@ -1,15 +1,17 @@
 onload = () => {
-    CANVAS = can;
-    CANVAS.width = CONFIG.width;
-    CANVAS.height = CONFIG.height;
+    window.highscores.init("Triska Reloaded", "scoreboard").then(() => {
+        CANVAS = can;
+        CANVAS.width = CONFIG.width;
+        CANVAS.height = CONFIG.height;
 
-    CTX = CANVAS.getContext('2d');
+        CTX = CANVAS.getContext('2d');
 
-    resetGame();
+        resetGame();
 
-    onresize();
+        onresize();
 
-    animationFrame();
+        animationFrame();
+    });
 };
 
 onresize = () => {
@@ -223,12 +225,4 @@ generateNewObstacle = () => {
             obstacle.y + RNG() * 100,
         ));
     }
-};
-
-updateHighscore = (score) => {
-    localStorage['hs'] = Math.max(highscore(), score);
-};
-
-highscore = () => {
-    return parseInt(localStorage['hs']) || 0;
 };

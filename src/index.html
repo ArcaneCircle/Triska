@@ -1,8 +1,9 @@
 <html>
 <head>
-    <title>Triska Reloaded</title>
     <link rel="stylesheet" href="style.css">
     <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1.01'>
+    <script src="webxdc.js"></script>
+    <script src="webxdc-scores.js"></script>
 </head>
 
 <body>
@@ -10,6 +11,21 @@
     <div id=inner>
         <canvas id=can></canvas>
     </div>
+    </div>
+
+    <!-- Scoreboard Modal -->
+    <div id="modal" class="w3-modal" onclick="event.stopPropagation();">
+        <div class="w3-modal-content w3-animate-top" onclick="event.stopPropagation();">
+
+            <header class="w3-container w3-red">
+                <h2>Scoreboard
+                    <span onclick="document.getElementById('modal').style.display='none'"
+                          class="w3-button w3-display-topright">&times;</span>
+                </h2>
+            </header>
+
+            <div id="scoreboard" class="w3-container"></div>
+        </div>
     </div>
 
     <script src="index.js"></script>

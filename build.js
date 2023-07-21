@@ -29,34 +29,37 @@ const files = [
             return readFile(file);
         }));
 
-        await del('docs/');
-        await del('game.zip');
-        await mkdir('docs/');
+        await del('dist/');
+        await del('Triska.xdc');
+        await mkdir('dist/');
 
-        await copyFile('src/style.css', 'docs/style.css');
-        await copyFile('src/index.html', 'docs/index.html');
+        await copyFile('manifest.toml', 'dist/manifest.toml');
+        await copyFile('icon.png', 'dist/icon.png');
+        await copyFile('src/style.css', 'dist/style.css');
+        await copyFile('src/index.html', 'dist/index.html');
+        await copyFile('node_modules/webxdc-scores/dist/webxdc-scores.umd.js', 'dist/webxdc-scores.js');
 
         const minified = await minify(allContents.map((buffer) => {
             return buffer.toString();
         }).join('\n'));
 
-        await writeFile('docs/index.js', minified.code);
+        await writeFile('dist/index.js', minified.code);
 
         await new Promise((resolve, reject) => {
-            const output = fs.createWriteStream('game.zip');
+            const output = fs.createWriteStream('Triska.xdc');
             output.on('error', reject);
             output.on('close', resolve);
 
             const archive = archiver('zip', {
                 zlib: { level: 9 }
             });
-            archive.directory('docs/', false);
+            archive.directory('dist/', false);
             archive.pipe(output);
             archive.finalize();
         })
 
-        const stats = await stat('game.zip');
-        const maxSize = 13 * 1024;
+        const stats = await stat('Triska.xdc');
+        const maxSize = 640 * 1024;
 
         console.log(`${stats.size} / ${maxSize} (${Math.round(stats.size * 100 / maxSize)}%)`);
     } catch (err) {
