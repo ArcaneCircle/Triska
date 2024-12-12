@@ -1,0 +1,15 @@
+export const state = {
+  CTX: document.getElementById("can").getContext("2d"),
+  PLAYER: null,
+  CAMERA: null,
+  CAMERA_SHAKE_END: 0,
+  LAST_FRAME: performance.now(),
+  OBSTACLES: [],
+  ITEMS: [],
+  GAME_DURATION: 0,
+  MOUSE_DOWN: false,
+  WAIT_FOR_RELEASE: false,
+  DEATHS: [],
+  MOUSE_POSITION: { x: 0, y: 0 },
+  MENU: null,
+};

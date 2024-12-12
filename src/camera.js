@@ -1,21 +1,24 @@
-class Camera {
-    constructor() {
-        this.topY = PLAYER.y - CONFIG.height + CONFIG.groundHeight;
-    }
+import { CONFIG } from "./config.js";
 
-    get bottomY() {
-        return this.topY + CONFIG.height;
-    }
+export class Camera {
+  constructor(player) {
+    this.player = player;
+    this.topY = player.y - CONFIG.height + CONFIG.groundHeight;
+  }
 
-    cycle(elapsed) {
-        const targetTopY = Math.min(this.topY, PLAYER.y - CONFIG.height * 0.7);
+  get bottomY() {
+    return this.topY + CONFIG.height;
+  }
 
-        const diff = targetTopY - this.topY;
+  cycle(elapsed) {
+    const targetTopY = Math.min(this.topY, this.player.y - CONFIG.height * 0.7);
 
-        const velocity = diff / 0.1;
+    const diff = targetTopY - this.topY;
 
-        this.topY += velocity * elapsed;
+    const velocity = diff / 0.1;
 
-        // this.topY = Math.min(this.topY, PLAYER.y - CONFIG.height * 0.5);
-    }
+    this.topY += velocity * elapsed;
+
+    // this.topY = Math.min(this.topY, this.player.y - CONFIG.height * 0.5);
+  }
 }

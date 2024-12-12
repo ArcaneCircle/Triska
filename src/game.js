@@ -1,228 +1,326 @@
-onload = () => {
-    window.highscores.init("Triska Reloaded", "scoreboard").then(() => {
-        CANVAS = can;
-        CANVAS.width = CONFIG.width;
-        CANVAS.height = CONFIG.height;
+import "./game.css";
+import "@webxdc/highscores";
 
-        CTX = CANVAS.getContext('2d');
+import "./utils.js";
+import { state } from "./state.js";
+import { CONFIG } from "./config.js";
+import { createNumberGenerator } from "./rng.js";
+import { Player } from "./player.js";
+import { Camera } from "./camera.js";
+import { MainMenu } from "./main-menu.js";
+import { Obstacle } from "./obstacle.js";
+import { Item } from "./item.js";
+import { BACKGROUND_PATTERNS, renderDeath, renderGauge } from "./graphics.js";
 
-        resetGame();
-
-        onresize();
-
-        animationFrame();
+function h(tag, attributes, ...children) {
+  const element = document.createElement(tag);
+  if (attributes) {
+    Object.entries(attributes).forEach((entry) => {
+      element.setAttribute(entry[0], entry[1]);
     });
-};
-
-onresize = () => {
-    const ratio = CONFIG.width / CONFIG.height;
-
-    let width, height;
-    if (innerWidth / innerHeight < ratio) {
-        width = innerWidth;
-        height = innerWidth / ratio;
-    } else {
-        height = innerHeight;
-        width = innerHeight * ratio;
-    }
-
-    inner.style.width = `${width}px`;
-    inner.style.height = `${height}px`;
-};
-
-animationFrame = () => {
-    const now = performance.now();
-    const elapsed = (now - LAST_FRAME) / 1000;
-    LAST_FRAME = now;
-
-    cycle(elapsed);
-    renderFrame();
-
-    requestAnimationFrame(animationFrame);
-};
-
-onmousedown = onkeydown = () => MOUSE_DOWN = true;
-onmouseup = ontouchcancel = onkeyup = () => MOUSE_DOWN = false;
-
-ontouchstart = (e) => {
-    onmousemove(e.touches[0]);
-    onmousedown(e);
-};
-
-ontouchmove = (e) => e.preventDefault();
-
-ontouchend = (e) => {
-    onmouseup();
-    onclick();
+  }
+  element.append(...children);
+  return element;
 }
 
-onmousemove = (e) => {
-    const rect = CANVAS.getBoundingClientRect();
-    MOUSE_POSITION = {
-        'x': (e.pageX - rect.left) / rect.width * CONFIG.width,
-        'y': (e.pageY - rect.top) / rect.height * CONFIG.height,
-    };
+const scoreboard = h("div", { id: "scoreboard", class: "w3-container" });
 
-    if (MENU && MENU.highlightedButton(MOUSE_POSITION)) {
-        CANVAS.style.cursor = 'pointer';
-    } else {
-        CANVAS.style.cursor = 'default';
-    }
+document.body.append(
+  h(
+    "div",
+    { id: "modal", class: "w3-modal", onclick: "event.stopPropagation();" },
+    h(
+      "div",
+      {
+        class: "w3-modal-content w3-animate-top",
+        onclick: "event.stopPropagation();",
+      },
+      h(
+        "header",
+        { class: "w3-container w3-red" },
+        h(
+          "h2",
+          {},
+          "Scoreboard",
+          h(
+            "span",
+            {
+              class: "w3-button w3-display-topright",
+              onclick: "document.getElementById('modal').style.display='none'",
+            },
+            "×",
+          ),
+        ),
+      ),
+      scoreboard,
+    ),
+  ),
+);
+
+const CANVAS = document.getElementById("can");
+let RNG = null;
+let RENDERED_POWER = 0;
+
+window.onload = () => {
+  window.highscores
+    .init({
+      onHighscoresChanged: () => {
+        scoreboard.innerHTML = window.highscores.renderScoreboard().innerHTML;
+      },
+    })
+    .then(() => {
+      CANVAS.width = CONFIG.width;
+      CANVAS.height = CONFIG.height;
+
+      resetGame();
+
+      window.onresize();
+
+      animationFrame();
+    });
 };
 
-onclick = () => {
-    if (MENU) {
-        const button = MENU.highlightedButton(MOUSE_POSITION);
-        if (button) button.onClick();
-    } else {
-        // if (!WAIT_FOR_RELEASE) {
-        //     // PLAYER.jump();
-        //     WAIT_FOR_RELEASE = true;
-        // }
-    }
+window.onresize = () => {
+  const ratio = CONFIG.width / CONFIG.height;
+
+  let width, height;
+  if (innerWidth / innerHeight < ratio) {
+    width = innerWidth;
+    height = innerWidth / ratio;
+  } else {
+    height = innerHeight;
+    width = innerHeight * ratio;
+  }
+
+  inner.style.width = `${width}px`;
+  inner.style.height = `${height}px`;
 };
 
-renderFrame = () => {
-    CTX.fillStyle = '#000';
-    CTX.fillRect(0, 0, CONFIG.width, CONFIG.height);
+window.animationFrame = () => {
+  const now = performance.now();
+  const elapsed = (now - state.LAST_FRAME) / 1000;
+  state.LAST_FRAME = now;
 
-    CTX.wrap(() => {
-        if (Date.now() < CAMERA_SHAKE_END) {
-            CTX.translate(
-                Math.random() * CONFIG.shakeFactor * 2 + CONFIG.shakeFactor,
-                Math.random() * CONFIG.shakeFactor * 2 + CONFIG.shakeFactor,
-            );
-        }
+  cycle(elapsed);
+  renderFrame();
 
-        // Walls
-        CTX.fillStyle = '#000';
-        CTX.fillRect(0, CAMERA.topY, CONFIG.wallX, CONFIG.height);
-        CTX.fillRect(CONFIG.width, 0, -CONFIG.wallX, CONFIG.height);
+  requestAnimationFrame(animationFrame);
+};
 
-        // Background color
-        CTX.fillStyle = Date.now() < CAMERA_SHAKE_END ? '#900' : '#c8caca';
-        CTX.fillRect(CONFIG.wallX, 0, CONFIG.width - CONFIG.wallX * 2, CONFIG.height);
+window.onmousedown = window.onkeydown = () => (state.MOUSE_DOWN = true);
+window.onmouseup =
+  window.ontouchcancel =
+  window.onkeyup =
+    () => (state.MOUSE_DOWN = false);
 
-        // Background trees
-        BACKGROUND_PATTERNS.forEach((pattern, i) => {
-            CTX.fillStyle = pattern;
+window.ontouchstart = (e) => {
+  onmousemove(e.touches[0]);
+  onmousedown(e);
+};
 
-            const distance = Math.abs(Math.sin(1 + i * 2));
+window.ontouchmove = (e) => e.preventDefault();
 
-            const offset = CAMERA.topY * 0.8 * (1 - distance / 4);
-            CTX.wrap(() => {
-                CTX.globalAlpha = 1 - distance / 2;
-                CTX.translate(0, -offset);
-                CTX.fillRect(CONFIG.wallX, offset, CONFIG.width - CONFIG.wallX * 2, CONFIG.height);
-            });
-        });
+window.ontouchend = (e) => {
+  onmouseup();
+  onclick();
+};
 
-        CTX.translate(0, -CAMERA.topY);
+window.onmousemove = (e) => {
+  const rect = CANVAS.getBoundingClientRect();
+  state.MOUSE_POSITION = {
+    x: ((e.pageX - rect.left) / rect.width) * CONFIG.width,
+    y: ((e.pageY - rect.top) / rect.height) * CONFIG.height,
+  };
 
-        // Obstacles
-        OBSTACLES.forEach((o) => o.render());
-        ITEMS.forEach((i) => i.render());
+  if (state.MENU && state.MENU.highlightedButton(state.MOUSE_POSITION)) {
+    CANVAS.style.cursor = "pointer";
+  } else {
+    CANVAS.style.cursor = "default";
+  }
+};
 
-        DEATHS.forEach(death => renderDeath(CTX, death.x, death.y));
+window.onclick = () => {
+  if (state.MENU) {
+    const button = state.MENU.highlightedButton(state.MOUSE_POSITION);
+    if (button) button.onClick();
+  } else {
+    // if (!state.WAIT_FOR_RELEASE) {
+    //     // state.PLAYER.jump();
+    //     state.WAIT_FOR_RELEASE = true;
+    // }
+  }
+};
 
-        if (MENU) CTX.globalAlpha = 1 - MENU.alpha;
-        if (GAME_DURATION === 0) return;
+window.renderFrame = () => {
+  state.CTX.fillStyle = "#000";
+  state.CTX.fillRect(0, 0, CONFIG.width, CONFIG.height);
 
-        // Ground
-        CTX.fillStyle = '#000';
-        CTX.fillRect(0, CONFIG.playerRadius + 10, CONFIG.width, CONFIG.groundHeight);
+  state.CTX.wrap(() => {
+    if (Date.now() < state.CAMERA_SHAKE_END) {
+      state.CTX.translate(
+        Math.random() * CONFIG.shakeFactor * 2 + CONFIG.shakeFactor,
+        Math.random() * CONFIG.shakeFactor * 2 + CONFIG.shakeFactor,
+      );
+    }
 
-        // Player
-        PLAYER.render();
+    // Walls
+    state.CTX.fillStyle = "#000";
+    state.CTX.fillRect(0, state.CAMERA.topY, CONFIG.wallX, CONFIG.height);
+    state.CTX.fillRect(CONFIG.width, 0, -CONFIG.wallX, CONFIG.height);
+
+    // Background color
+    state.CTX.fillStyle =
+      Date.now() < state.CAMERA_SHAKE_END ? "#900" : "#c8caca";
+    state.CTX.fillRect(
+      CONFIG.wallX,
+      0,
+      CONFIG.width - CONFIG.wallX * 2,
+      CONFIG.height,
+    );
+
+    // Background trees
+    BACKGROUND_PATTERNS.forEach((pattern, i) => {
+      state.CTX.fillStyle = pattern;
+
+      const distance = Math.abs(Math.sin(1 + i * 2));
+
+      const offset = state.CAMERA.topY * 0.8 * (1 - distance / 4);
+      state.CTX.wrap(() => {
+        state.CTX.globalAlpha = 1 - distance / 2;
+        state.CTX.translate(0, -offset);
+        state.CTX.fillRect(
+          CONFIG.wallX,
+          offset,
+          CONFIG.width - CONFIG.wallX * 2,
+          CONFIG.height,
+        );
+      });
     });
 
-    if (!MENU && PLAYER.distance) {
-        CTX.fillStyle = '#b12a34'
-        CTX.textBaseline = 'top';
-        CTX.textAlign = 'left';
-        CTX.font = '18pt Courier';
-        CTX.fillText(`${PLAYER.distance}M`, CONFIG.wallX + 15, 15);
+    state.CTX.translate(0, -state.CAMERA.topY);
 
-        CTX.wrap(() => {
-            CTX.translate(CONFIG.width / 2, 25);
+    // Obstacles
+    state.OBSTACLES.forEach((o) => o.render());
+    state.ITEMS.forEach((i) => i.render());
 
-            const scale = 1 + Math.min(0.1, Math.abs(RENDERED_POWER - PLAYER.power));
+    state.DEATHS.forEach((death) => renderDeath(state.CTX, death.x, death.y));
 
-            if (RENDERED_POWER < PLAYER.power) {
-                CTX.scale(scale, scale);
-            }
+    if (state.MENU) state.CTX.globalAlpha = 1 - state.MENU.alpha;
+    if (state.GAME_DURATION === 0) return;
 
-            renderGauge(CTX, RENDERED_POWER);
-        });
-    }
-
-    if (MENU) CTX.wrap(() => MENU.render());
-};
-
-resetGame = () => {
-    resetPlayer();
-    MENU = new MainMenu();
-};
-
-resetPlayer = () => {
-    RNG = createNumberGenerator(1);
-    PLAYER = new Player();
-    CAMERA = new Camera();
-    OBSTACLES = [];
-    ITEMS = [];
-};
-
-cycle = (elapsed) => {
-    if (!MENU || MENU.dismissed) {
-        GAME_DURATION += elapsed;
-    } else {
-        GAME_DURATION = 0;
-    }
-
-    if (!MOUSE_DOWN) {
-        WAIT_FOR_RELEASE = false;
-    }
-
-    PLAYER.cycle(elapsed);
-    CAMERA.cycle(elapsed);
-    ITEMS.forEach(i => i.cycle(elapsed));
-
-    const appliedDiff = Math.max(-elapsed * 0.5, Math.min(elapsed * 0.5, PLAYER.power - RENDERED_POWER));
-    RENDERED_POWER += appliedDiff;
-
-    if (!OBSTACLES.length || OBSTACLES[OBSTACLES.length - 1].y >= CAMERA.topY) {
-        generateNewObstacle();
-    }
-};
-
-generateNewObstacle = () => {
-    const lastObstacleY = OBSTACLES.length ? OBSTACLES[OBSTACLES.length - 1].y : CONFIG.obstaclesStartY;
-
-    const difficulty = Math.min(1, OBSTACLES.length / 20);
-    const minSpacing = CONFIG.obstacleRadiusY * 2 + 200 + (1 - difficulty) * 400;
-    const extraSpacing = (1 - difficulty) * 500;
-
-    const doubleProbability = difficulty * 0.2;
-
-    const xRng = RNG() < 0.5;
-
-    const obstacle = new Obstacle(
-        xRng ? CONFIG.wallX : CONFIG.width - CONFIG.wallX,
-        lastObstacleY - (RNG() * extraSpacing + minSpacing),
+    // Ground
+    state.CTX.fillStyle = "#000";
+    state.CTX.fillRect(
+      0,
+      CONFIG.playerRadius + 10,
+      CONFIG.width,
+      CONFIG.groundHeight,
     );
-    OBSTACLES.push(obstacle);
 
-    if (RNG() < doubleProbability) {
-        OBSTACLES.push(new Obstacle(
-            !xRng ? CONFIG.wallX : CONFIG.width - CONFIG.wallX,
-            obstacle.y,
-        ));
-    }
+    // Player
+    state.PLAYER.render();
+  });
 
-    if (RNG() < 0.5) {
-        ITEMS.push(new Item(
-            CONFIG.wallX * 2 + RNG() * (CONFIG.width - CONFIG.wallX * 4),
-            obstacle.y + RNG() * 100,
-        ));
-    }
+  if (!state.MENU && state.PLAYER.distance) {
+    state.CTX.fillStyle = "#b12a34";
+    state.CTX.textBaseline = "top";
+    state.CTX.textAlign = "left";
+    state.CTX.font = "18pt Courier";
+    state.CTX.fillText(`${state.PLAYER.distance}M`, CONFIG.wallX + 15, 15);
+
+    state.CTX.wrap(() => {
+      state.CTX.translate(CONFIG.width / 2, 25);
+
+      const scale =
+        1 + Math.min(0.1, Math.abs(RENDERED_POWER - state.PLAYER.power));
+
+      if (RENDERED_POWER < state.PLAYER.power) {
+        state.CTX.scale(scale, scale);
+      }
+
+      renderGauge(state.CTX, RENDERED_POWER);
+    });
+  }
+
+  if (state.MENU) state.CTX.wrap(() => state.MENU.render());
+};
+
+window.resetGame = () => {
+  resetPlayer();
+  state.MENU = new MainMenu();
+};
+
+window.resetPlayer = () => {
+  RNG = createNumberGenerator(1);
+  state.PLAYER = new Player();
+  state.CAMERA = new Camera(state.PLAYER);
+  state.OBSTACLES = [];
+  state.ITEMS = [];
+};
+
+window.cycle = (elapsed) => {
+  if (!state.MENU || state.MENU.dismissed) {
+    state.GAME_DURATION += elapsed;
+  } else {
+    state.GAME_DURATION = 0;
+  }
+
+  if (!state.MOUSE_DOWN) {
+    state.WAIT_FOR_RELEASE = false;
+  }
+
+  state.PLAYER.cycle(elapsed);
+  state.CAMERA.cycle(elapsed);
+  state.ITEMS.forEach((i) => i.cycle(elapsed));
+
+  const appliedDiff = Math.max(
+    -elapsed * 0.5,
+    Math.min(elapsed * 0.5, state.PLAYER.power - RENDERED_POWER),
+  );
+  RENDERED_POWER += appliedDiff;
+
+  if (
+    !state.OBSTACLES.length ||
+    state.OBSTACLES[state.OBSTACLES.length - 1].y >= state.CAMERA.topY
+  ) {
+    generateNewObstacle();
+  }
+};
+
+window.generateNewObstacle = () => {
+  const lastObstacleY = state.OBSTACLES.length
+    ? state.OBSTACLES[state.OBSTACLES.length - 1].y
+    : CONFIG.obstaclesStartY;
+
+  const difficulty = Math.min(1, state.OBSTACLES.length / 20);
+  const minSpacing = CONFIG.obstacleRadiusY * 2 + 200 + (1 - difficulty) * 400;
+  const extraSpacing = (1 - difficulty) * 500;
+
+  const doubleProbability = difficulty * 0.2;
+
+  const xRng = RNG() < 0.5;
+
+  const obstacle = new Obstacle(
+    xRng ? CONFIG.wallX : CONFIG.width - CONFIG.wallX,
+    lastObstacleY - (RNG() * extraSpacing + minSpacing),
+  );
+  state.OBSTACLES.push(obstacle);
+
+  if (RNG() < doubleProbability) {
+    state.OBSTACLES.push(
+      new Obstacle(
+        !xRng ? CONFIG.wallX : CONFIG.width - CONFIG.wallX,
+        obstacle.y,
+      ),
+    );
+  }
+
+  if (RNG() < 0.5) {
+    state.ITEMS.push(
+      new Item(
+        CONFIG.wallX * 2 + RNG() * (CONFIG.width - CONFIG.wallX * 4),
+        obstacle.y + RNG() * 100,
+      ),
+    );
+  }
 };
